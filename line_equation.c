@@ -3,7 +3,8 @@
 #include<stdlib.h>
 #include<math.h>
 
-int regression(int[],int[],int);
+int regression(int[],float[],int);
+void error_rate(int[],float[],int);
 
 #define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
@@ -39,7 +40,7 @@ int fileread(char filename[])
     else
     {   
         int i=0;
-        while(fgets(line,10,data)!=NULL)
+        while(fgetsl())
         {
             token=strtok(line,",");
             valuelist[i]=token;
@@ -55,7 +56,7 @@ int fileread(char filename[])
 
 int main()
 {
-    int value_list[31]={229.25,
+    float value_list[50]={229.25,
 227.6,
 228.9,
 231.4,
@@ -80,7 +81,7 @@ int main()
 242,
 };
 
-    int days[31]={30,
+    int days[50]={30,
 31,
 29,
 28,
@@ -109,25 +110,45 @@ int main()
 //    char filename[20];
 //    gets(filename);
 //    fileread(filename);
-    int count=NELEMS(days);
+    int count=23;
+    //int error_values[50];
     printf("%d\n",count);
     regression(days,value_list,count);
     printf("y=%fx+(%f)",m,c);
+    error_rate(days,value_list,count);
+
     return 0;
 }
 
-int regression(int x[],int y[],int count){
-    int sumx=0;int sumy=0;int sum_xsq=0;int sum_xy=0;
+int regression(int x[],float y[],int count){
+    int sumx=0;
+    float sumy=0.0;
+    int sum_xsq=0;
+    float sum_xy=0.0;
     float denom=0.0;
     int i;
-    for(i=0;i<=count;i++)
+    for(i=0;i<count;i++)
     {
-        sumx=x[i]+sumx;
-        sumy=y[i]+sumy;
-        sum_xsq=sum_xsq+x[i]*x[i];
-        sum_xy=sum_xsq+(x[i]*y[i]);
+        sumx+=x[i];
+        sumy+=y[i];
+        sum_xsq+=pow(x[i],2);
+        sum_xy+=(x[i]*y[i]);
     }
-    denom = count * sum_xsq-pow(sumx,2);
-    c = (sumy * sum_xsq - sumx * sum_xy) / denom;
-    m = (count * sum_xy - sumx * sumy) / denom;
+    denom = count * sum_xsq - pow(sumx,2);
+    c = ((sumy * sum_xsq) - (sumx * sum_xy)) / denom;
+    m = ((count * sum_xy) - (sumx * sumy)) / denom;
+}
+
+
+void error_rate(int days[],float value_list[],int count)
+{
+    int i;
+    float error_value;
+    printf("\n\nActual value\t\tPredicted value\t\tError\n");
+    for(i=0;i<count;i++)
+    {
+        float temp_value=m*days[i]+c;
+        error_value=value_list[i]-temp_value;
+        printf("%f\t\t%f\t\t%f\n",value_list[i],temp_value,error_value);
+    }
 }
